@@ -1,0 +1,71 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="DarkestDungeonRandomizer.MainWindow"
+        Title="DarkestDungeonRandomizer">
+	<Window.Styles>
+		<Style Selector="Button, CheckBox, TextBox, TextBlock">
+			<Setter Property="Margin" Value="3"/>
+		</Style>
+		<Style Selector="TextBlock">
+			<Setter Property="Margin" Value="3"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+	</Window.Styles>
+	<DockPanel Margin="5">
+		<StackPanel DockPanel.Dock="Top">
+			<Grid HorizontalAlignment="Stretch">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="35"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="32"/>
+				</Grid.RowDefinitions>
+				<TextBlock Grid.Row="0" Grid.Column="0">Darkest Dungeon Game Directory: </TextBlock>
+				<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding DDPath}"></TextBox>
+				<Button Grid.Row="0" Grid.Column="2" DockPanel.Dock="Right" Command="{Binding SelectGameDirectory}">
+					<TextBlock Margin="0">...</TextBlock>
+				</Button>
+			</Grid>
+			<StackPanel Orientation="Horizontal">
+				<TextBlock>Seed: </TextBlock>
+				<TextBox Width="140" Height="26" Grid.Row="1" Grid.Column="1" Text="{Binding Seed}"/>
+				<Button Command="{Binding RandomizeSeed}">
+					<TextBlock Margin="0">Randomize Seed</TextBlock>
+				</Button>
+			</StackPanel>
+			<WrapPanel>
+				<CheckBox IsChecked="{Binding RandomizeCurioRegions}">
+					<TextBlock>Shuffle Curio Regions</TextBlock>
+				</CheckBox>
+				<CheckBox IsChecked="{Binding RandomizeCurioEffects}">
+					<TextBlock>Shuffle Curio Effects</TextBlock>
+				</CheckBox>
+				<CheckBox IsChecked="{Binding RandomizeCurioInteractions}">
+					<TextBlock>Shuffle Curio Interactions</TextBlock>
+				</CheckBox>
+				<CheckBox IsChecked="{Binding IncludeShamblerAltar}">
+					<TextBlock>Include Shambler Altar in Shuffles</TextBlock>
+				</CheckBox>
+				<CheckBox IsChecked="{Binding IncludeStoryCurios}">
+					<TextBlock>Include Story Curios in Shuffles</TextBlock>
+				</CheckBox>
+			</WrapPanel>
+		</StackPanel>
+		<StackPanel DockPanel.Dock="Bottom">
+			<Button Command="{Binding CreateRandomizerMod}">Create Randomizer</Button>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+				</Grid.ColumnDefinitions>
+				<Button Grid.Column="0" Command="{Binding OpenModsFolder}">Open Steamless Mods Folder</Button>
+				<Button Grid.Column="1" Command="{Binding StartDarkestDungeon}">Start Darkest Dungeon (Steamless)</Button>
+			</Grid>
+		</StackPanel>
+	</DockPanel>
+</Window>

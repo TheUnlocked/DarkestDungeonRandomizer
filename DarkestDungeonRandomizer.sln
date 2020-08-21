@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkestDungeonRandomizer", "DarkestDungeonRandomizer.csproj", "{62B76326-4246-4E98-A524-8E5E9D0468C4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{62B76326-4246-4E98-A524-8E5E9D0468C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62B76326-4246-4E98-A524-8E5E9D0468C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62B76326-4246-4E98-A524-8E5E9D0468C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62B76326-4246-4E98-A524-8E5E9D0468C4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D715C2AD-7E43-4300-AE53-81DAE3744193}
+	EndGlobalSection
+EndGlobal
