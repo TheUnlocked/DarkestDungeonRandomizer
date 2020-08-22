@@ -29,5 +29,20 @@ namespace DarkestDungeonRandomizer
                 return @default;
             }
         }
+
+        public static T[] Shuffle<T>(this T[] original, Random random)
+        {
+            T[] newData = original.ToArray();
+            int n = newData.Length;
+            while (n > 1)
+            {
+                n--;
+                int k = random.Next(n + 1);
+                T value = newData[k];
+                newData[k] = newData[n];
+                newData[n] = value;
+            }
+            return newData;
+        }
     }
 }

@@ -3,38 +3,69 @@ using DarkestDungeonRandomizer.DDTypes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DarkestDungeonRandomizer
 {
-    public class Shuffler
+    public class CurioShuffler
     {
-        private readonly MainViewModel options;
+        private readonly MainViewModel model;
         private readonly Random random;
 
-        public Shuffler(MainViewModel options)
+        public CurioShuffler(MainViewModel model, Random random)
         {
-            this.options = options;
-            random = new Random(options.Seed);
+            this.model = model;
+            this.random = random;
         }
 
-        public CurioTypeLibrary ShuffleCurios(CurioTypeLibrary curioTypeLibrary)
+        public void Randomize()
+        {
+            var curiosFolder = model.ModDirectory.CreateSubdirectory("curios");
+            var curios = CurioTypeLibrary.LoadFromFile(model.GetGameDataPath(Path.Combine("curios", "curio_type_library.csv")));
+            var shuffledCurios = ShuffleCurioTypeLibrary(curios);
+            var dungeonCurioPropsFiles = new[]
+            {
+                (Region.Cove, new[] { "dungeons", "cove", "cove.props.darkest" }),
+                (Region.Ruins, new[] { "dungeons", "crypts", "crypts.props.darkest" }),
+                (Region.Warrens, new[] { "dungeons", "warrens", "warrens.props.darkest" }),
+                (Region.Weald, new[] { "dungeons", "weald", "weald.props.darkest" }),
+                (Region.DarkestDungeon, new[] { "dungeons", "darkestdungeon", "darkestdungeon.props.darkest" }),
+                (Region.Town, new[] { "dungeons", "town", "town.props.darkest" })
+            };
+            var syncedDungeonCurioProps = AlignDungeonPropsToCurioRegions(
+                dungeonCurioPropsFiles
+                    .Select(x => (x.Item1, Darkest.LoadFromFile(model.GetGameDataPath(Path.Combine(x.Item2)))))
+                    .ToArray(),
+                shuffledCurios);
+
+            var dungeonsFolder = model.ModDirectory.CreateSubdirectory("dungeons");
+            dungeonCurioPropsFiles.Zip(syncedDungeonCurioProps, (i, r) => {
+                var dungeonFolder = dungeonsFolder.CreateSubdirectory(i.Item2[1]);
+                r.Item2.WriteToFile(Path.Combine(dungeonFolder.FullName, i.Item2[2]));
+                return 0;
+            }).ToArray(); // ToArray to get side effects to compute.
+
+            shuffledCurios.WriteToFile(Path.Combine(curiosFolder.FullName, "curio_type_library.csv"));
+        }
+
+        private CurioTypeLibrary ShuffleCurioTypeLibrary(CurioTypeLibrary curioTypeLibrary)
         {
             var curios = curioTypeLibrary.Curios;
-            if (!options.IncludeShamblerAltar)
+            if (!model.IncludeShamblerAltar)
             {
                 curios = curioTypeLibrary.Curios.Where(x => x.IdString != "shamblers_altar").ToArray();
             }
-            if (!options.IncludeStoryCurios)
+            if (!model.IncludeStoryCurios)
             {
                 curios = curioTypeLibrary.Curios.Where(x => x.FullCurio).ToArray();
             }
 
             var regions = curioTypeLibrary.Curios.Select(x => x.RegionFound).ToArray();
             var curioEffectLists = curioTypeLibrary.Curios.Select(x => x.Effects);
-            if (options.RandomizeCurioRegions)
+            if (model.RandomizeCurioRegions)
             {
                 regions = regions.Shuffle(random);
             }
@@ -61,7 +92,7 @@ namespace DarkestDungeonRandomizer
                     i++;
                 }
             }
-            if (options.RandomizeCurioEffects)
+            if (model.RandomizeCurioEffects)
             {
                 nothingEffects = nothingEffects.Shuffle(random);
                 lootEffects = lootEffects.Shuffle(random);
@@ -85,7 +116,7 @@ namespace DarkestDungeonRandomizer
                     itemInteractionsByItem[item][i] = effect;
                 }
             }
-            if (options.RandomizeCurioInteractions)
+            if (model.RandomizeCurioInteractions)
             {
                 foreach (var pair in itemInteractionsByItem)
                 {
@@ -122,11 +153,11 @@ namespace DarkestDungeonRandomizer
                 ItemIteractions = itemInteractionByCurio[i]
             }).ToArray();
 
-            if (!options.IncludeShamblerAltar)
+            if (!model.IncludeShamblerAltar)
             {
                 curios = curios.Concat(new[] { curios.First(x => x.IdString != "shamblers_altar") }).ToArray();
             }
-            if (!options.IncludeStoryCurios)
+            if (!model.IncludeStoryCurios)
             {
                 curios = curios.Concat(curioTypeLibrary.Curios.Where(x => !x.FullCurio)).ToArray();
             }
@@ -134,9 +165,9 @@ namespace DarkestDungeonRandomizer
             return new CurioTypeLibrary(curios);
         }
 
-        public (Region, Darkest)[] AlignDungeonPropsToCurioRegions((Region, Darkest)[] regionPropFiles, CurioTypeLibrary curioTypeLibrary)
+        private (Region, Darkest)[] AlignDungeonPropsToCurioRegions((Region, Darkest)[] regionPropFiles, CurioTypeLibrary curioTypeLibrary)
         {
-            if (!options.RandomizeCurioRegions)
+            if (!model.RandomizeCurioRegions)
             {
                 return regionPropFiles;
             }
@@ -163,7 +194,7 @@ namespace DarkestDungeonRandomizer
                         { "types", new[] { x.IdString } }
                     }))
                     .ToList();
-                if (!options.IncludeShamblerAltar)
+                if (!model.IncludeShamblerAltar)
                 {
                     newDict["hall_curios"].Add(new Darkest.DarkestEntry("hall_curios", new Dictionary<string, string[]>() {
                         { "chance", new[] { "1" } },
@@ -188,24 +219,6 @@ namespace DarkestDungeonRandomizer
                 newFiles[i] = (region, new Darkest(newDict.ToImmutableDictionary(p => p.Key, p => (IReadOnlyList<Darkest.DarkestEntry>)p.Value)));
             }
             return newFiles;
-        }
-    }
-
-    public static class ShufflerExtension
-    {
-        public static T[] Shuffle<T>(this T[] original, Random random)
-        {
-            T[] newData = original.ToArray();
-            int n = newData.Length;
-            while (n > 1)
-            {
-                n--;
-                int k = random.Next(n + 1);
-                T value = newData[k];
-                newData[k] = newData[n];
-                newData[n] = value;
-            }
-            return newData;
         }
     }
 }

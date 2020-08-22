@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,9 @@ namespace DarkestDungeonRandomizer
 {
     public class MainViewModel : ReactiveObject
     {
+        /// <summary>
+        /// If attempting to read game data, use GetGameDataPath instead.
+        /// </summary>
         public string DDPath { get; set; } = "";
 
         public int Seed { get; set; } = 0;
@@ -24,6 +28,12 @@ namespace DarkestDungeonRandomizer
         public bool RandomizeCurioInteractions { get; set; } = true;
         public bool IncludeShamblerAltar { get; set; } = false;
         public bool IncludeStoryCurios { get; set; } = true;
+        public bool RandomizeMonsters { get; set; } = true;
+        public bool RandomizeBosses { get; set; } = true;
+
+        public DirectoryInfo ModDirectory { get; private set; } = null!;
+        public Dictionary<string, Monster> Monsters { get; private set; } = null!;
+
 
         private readonly Window window;
 
@@ -49,42 +59,63 @@ namespace DarkestDungeonRandomizer
         {
             if (DDPath == "")
             {
+                MessageBoxManager.GetMessageBoxStandardWindow("Folder Not Found", "Please set the Darkest Dungeon game folder.", MessageBox.Avalonia.Enums.ButtonEnum.Ok).Show();
                 return;
             }
             try
             {
-                var shuffler = new Shuffler(this);
-                var modFolder = ModCreator.CreateMod(this);
-                var curiosFolder = modFolder.CreateSubdirectory("curios");
-                var curios = CurioTypeLibrary.LoadFromFile(Path.Combine(DDPath, "curios", "curio_type_library.csv"));
-                var shuffledCurios = shuffler.ShuffleCurios(curios);
-                var dungeonCurioPropsFiles = new[]
-                {
-                    (Region.Cove, new[] { DDPath, "dungeons", "cove", "cove.props.darkest" }),
-                    (Region.Ruins, new[] { DDPath, "dungeons", "crypts", "crypts.props.darkest" }),
-                    (Region.Warrens, new[] { DDPath, "dungeons", "warrens", "warrens.props.darkest" }),
-                    (Region.Weald, new[] { DDPath, "dungeons", "weald", "weald.props.darkest" }),
-                    (Region.DarkestDungeon, new[] { DDPath, "dungeons", "darkestdungeon", "darkestdungeon.props.darkest" }),
-                    (Region.Town, new[] { DDPath, "dungeons", "town", "town.props.darkest" })
-                };
-                var syncedDungeonCurioProps = shuffler.AlignDungeonPropsToCurioRegions(
-                    dungeonCurioPropsFiles.Select(x => (x.Item1, Darkest.LoadFromFile(Path.Combine(x.Item2)))).ToArray(),
-                    shuffledCurios);
+                ReadBaseGameData();
 
-                var dungeonsFolder = modFolder.CreateSubdirectory("dungeons");
-                dungeonCurioPropsFiles.Zip(syncedDungeonCurioProps, (i, r) => {
-                    var dungeonFolder = dungeonsFolder.CreateSubdirectory(i.Item2[2]);
-                    r.Item2.WriteToFile(Path.Combine(Path.Combine(dungeonFolder.FullName), i.Item2[3]));
-                    return 0;
-                }).ToArray(); // ToArray to get side effects to compute.
-
-                shuffledCurios.WriteToFile(Path.Combine(curiosFolder.FullName, "curio_type_library.csv"));
+                ModDirectory = ModCreator.CreateMod(this);
+                var rand = new Random(Seed);
+                new CurioShuffler(this, rand).Randomize();
+                new EnemyShuffler(this, rand).Randomize();
+                MessageBoxManager.GetMessageBoxStandardWindow(
+                    "Randomizer Finished", $"The randomizer mod has been created. Its tag is {ModCreator.GetRandomizerUUID(this)}",
+                    MessageBox.Avalonia.Enums.ButtonEnum.Ok
+                ).Show();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
-                MessageBoxManager.GetMessageBoxStandardWindow("Folder Not Found", "Please set the Darkest Dungeon game folder.", MessageBox.Avalonia.Enums.ButtonEnum.Ok);
+                Console.WriteLine();
+                MessageBoxManager.GetMessageBoxStandardWindow(
+                    e.GetType().FullName, $"{e.Message}\n{e.StackTrace}",
+                    MessageBox.Avalonia.Enums.ButtonEnum.Ok,
+                    MessageBox.Avalonia.Enums.Icon.Error
+                ).Show();
+            }
+        }
+
+        private void ReadBaseGameData()
+        {
+            Monsters = new Dictionary<string, Monster>();
+            foreach (var monsterType in Directory.GetDirectories(Path.Combine(DDPath, "monsters")).Select(Path.GetFileName))
+            {
+                if (monsterType == null) continue;
+                foreach (var monsterName in Directory.GetDirectories(Path.Combine(DDPath, "monsters", monsterType))
+                    .Select(Path.GetFileName)
+                    .Where(x => x != null && x.StartsWith(monsterType)))
+                {
+                    if (monsterName == null) continue; // Extraneous but makes NRT stuff go away
+                    Monsters[monsterName] = Monster.FromDarkest(
+                        monsterName,
+                        Darkest.LoadFromFile(Path.Combine(DDPath, "monsters", monsterType, monsterName, $"{monsterName}.info.darkest"))
+                    );
+                }
+            }
+        }
+
+        public string GetGameDataPath(string partialPath)
+        {
+            if (File.Exists(Path.Combine(ModDirectory.FullName, partialPath)))
+            {
+                return Path.Combine(ModDirectory.FullName, partialPath);
+            }
+            else
+            {
+                return Path.Combine(DDPath, partialPath);
             }
         }
 
@@ -96,7 +127,7 @@ namespace DarkestDungeonRandomizer
             }
             catch
             {
-                MessageBoxManager.GetMessageBoxStandardWindow("Folder Not Found", "Please set the Darkest Dungeon game folder.", MessageBox.Avalonia.Enums.ButtonEnum.Ok);
+                MessageBoxManager.GetMessageBoxStandardWindow("Folder Not Found", "Please set the Darkest Dungeon game folder.", MessageBox.Avalonia.Enums.ButtonEnum.Ok).Show();
             }
         }
 
@@ -111,7 +142,7 @@ namespace DarkestDungeonRandomizer
             }
             catch
             {
-                MessageBoxManager.GetMessageBoxStandardWindow("Folder Not Found", "Please set the Darkest Dungeon game folder.", MessageBox.Avalonia.Enums.ButtonEnum.Ok);
+                MessageBoxManager.GetMessageBoxStandardWindow("Folder Not Found", "Please set the Darkest Dungeon game folder.", MessageBox.Avalonia.Enums.ButtonEnum.Ok).Show();
             }
         }
     }

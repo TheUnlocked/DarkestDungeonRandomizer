@@ -11,20 +11,26 @@ namespace DarkestDungeonRandomizer
     {
         /// <summary>
         /// Creates a mod on disk and returns the directory it's contained within.
+        /// If the mod already exists on disk, it will be deleted.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
         public static DirectoryInfo CreateMod(MainViewModel options)
         {
             var uuid = GetRandomizerUUID(options);
-            var dir = Directory.CreateDirectory(Path.Combine(options.DDPath, "mods", $"Randomizer {uuid}"));
+            var modDirectory = Path.Combine(options.DDPath, "mods", $"Randomizer {uuid}");
+            if (Directory.Exists(modDirectory))
+            {
+                Directory.Delete(modDirectory, true);
+            }
+            var dir = Directory.CreateDirectory(modDirectory);
             File.WriteAllText(Path.Combine(dir.FullName, "project.xml"),
 $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <project>
 	<PreviewIconFile></PreviewIconFile>
 	<ItemDescriptionShort/>
 	<ModDataPath>{dir.FullName}</ModDataPath>
-	<Title>Randomizer [{uuid}] (Seed: {options.Seed})</Title>
+	<Title>Randomizer [Tag {uuid} | Seed {options.Seed}]</Title>
 	<Language>english</Language>
 	<UpdateDetails/>
 	<Visibility>hidden</Visibility>
@@ -46,7 +52,9 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
                 (options.RandomizeCurioInteractions ? 2 : 0) +
                 (options.RandomizeCurioRegions ? 4 : 0) +
                 (options.IncludeShamblerAltar ? 8 : 0) +
-                (options.IncludeStoryCurios ? 16 : 0);
+                (options.IncludeStoryCurios ? 16 : 0) +
+                (options.RandomizeMonsters ? 32 : 0) +
+                (options.RandomizeBosses ? 64 : 0);
             return addin.ToString("x").Trim('0') + options.Seed.ToString("x");
         }
     }
