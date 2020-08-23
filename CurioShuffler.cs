@@ -188,7 +188,7 @@ namespace DarkestDungeonRandomizer
                 var roomTreasures = treasures.Take(random.Next(4, 8));
 
                 newDict["hall_curios"] = hallCurios
-                    .Select(x => new Darkest.DarkestEntry("hall_curios", new Dictionary<string, string[]>()
+                    .Select(x => new Darkest.DarkestEntry("hall_curios", new Dictionary<string, IReadOnlyList<string>>()
                     {
                         { "chance", new[] { random.Next(1, 11).ToString() } },
                         { "types", new[] { x.IdString } }
@@ -196,20 +196,20 @@ namespace DarkestDungeonRandomizer
                     .ToList();
                 if (!model.IncludeShamblerAltar)
                 {
-                    newDict["hall_curios"].Add(new Darkest.DarkestEntry("hall_curios", new Dictionary<string, string[]>() {
+                    newDict["hall_curios"].Add(new Darkest.DarkestEntry("hall_curios", new Dictionary<string, IReadOnlyList<string>>() {
                         { "chance", new[] { "1" } },
                         { "types", new[] { "shamblers_altar" } }
                     }));
                 }
                 newDict["room_curios"] = roomCurios
-                    .Select(x => new Darkest.DarkestEntry("room_curios", new Dictionary<string, string[]>()
+                    .Select(x => new Darkest.DarkestEntry("room_curios", new Dictionary<string, IReadOnlyList<string>>()
                     {
                         { "chance", new[] { random.Next(1, 11).ToString() } },
                         { "types", new[] { x.IdString } }
                     }))
                     .ToList();
                 newDict["room_treasures"] = roomCurios
-                    .Select(x => new Darkest.DarkestEntry("room_curios", new Dictionary<string, string[]>()
+                    .Select(x => new Darkest.DarkestEntry("room_curios", new Dictionary<string, IReadOnlyList<string>>()
                     {
                         { "chance", new[] { random.Next(1, 11).ToString() } },
                         { "types", new[] { x.IdString } }

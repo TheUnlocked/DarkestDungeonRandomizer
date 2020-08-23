@@ -58,7 +58,7 @@
                 <CheckBox IsChecked="{Binding RandomizeMonsters}">
                     <TextBlock>Shuffle Monsters</TextBlock>
                 </CheckBox>
-                <CheckBox ToolTip.Tip="Not Yet Implemented" IsChecked="{Binding RandomizeBosses}">
+                <CheckBox IsChecked="{Binding RandomizeBosses}">
                     <TextBlock>Shuffle Bosses</TextBlock>
                 </CheckBox>
             </WrapPanel>

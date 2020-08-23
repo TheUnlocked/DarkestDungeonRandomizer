@@ -10,7 +10,7 @@ namespace DarkestDungeonRandomizer.DDFileTypes
 {
     public record Darkest(IReadOnlyDictionary<string, IReadOnlyList<Darkest.DarkestEntry>> Entries)
     {
-        public record DarkestEntry(string Type, IReadOnlyDictionary<string, string[]> Properties);
+        public record DarkestEntry(string Type, IReadOnlyDictionary<string, IReadOnlyList<string>> Properties);
 
         public static Darkest LoadFromFile(string filename)
         {
@@ -32,7 +32,7 @@ namespace DarkestDungeonRandomizer.DDFileTypes
             Dictionary<string, List<DarkestEntry>> entries = new Dictionary<string, List<DarkestEntry>>();
 
             string? currentType = null;
-            Dictionary<string, string[]> currentProps = null!;
+            Dictionary<string, IReadOnlyList<string>> currentProps = null!;
             string? currentPropName = null;
             List<string> currentPropValues = null!;
 
@@ -49,7 +49,7 @@ namespace DarkestDungeonRandomizer.DDFileTypes
                         entries.GetValueOrSetDefault(currentType, new List<DarkestEntry>()).Add(new DarkestEntry(currentType, currentProps));
                     }
                     currentType = str[0..^1];
-                    currentProps = new Dictionary<string, string[]>();
+                    currentProps = new Dictionary<string, IReadOnlyList<string>>();
                 }
                 else if (currentType != null)
                 {
