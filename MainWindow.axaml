@@ -7,7 +7,7 @@
         x:Class="DarkestDungeonRandomizer.MainWindow"
         Title="DarkestDungeonRandomizer">
     <Window.Styles>
-        <Style Selector="Button, CheckBox, TextBox, TextBlock">
+        <Style Selector="Button, CheckBox, TextBox, TextBlock, Slider">
             <Setter Property="Margin" Value="3"/>
         </Style>
         <Style Selector="TextBlock">
@@ -52,7 +52,7 @@
                 <CheckBox IsChecked="{Binding IncludeShamblerAltar}">
                     <TextBlock>Include Shambler Altar in Shuffles</TextBlock>
                 </CheckBox>
-                <CheckBox IsChecked="{Binding IncludeStoryCurios}">
+                <CheckBox ToolTip.Tip="This may or may not break the game..." IsChecked="{Binding IncludeStoryCurios}">
                     <TextBlock>Include Story Curios in Shuffles</TextBlock>
                 </CheckBox>
                 <CheckBox IsChecked="{Binding RandomizeMonsters}">
@@ -61,6 +61,15 @@
                 <CheckBox IsChecked="{Binding RandomizeBosses}">
                     <TextBlock>Shuffle Bosses</TextBlock>
                 </CheckBox>
+				<StackPanel Orientation="Horizontal" ToolTip.Tip="Values other than 1.00 and Off are experimental.">
+				    <Slider
+						Name="RandomizeHeroStats"
+						Width="80"
+					    Minimum="0" Maximum="1.5"
+					    TickFrequency="0.25" IsSnapToTickEnabled="True"
+					    Value="{Binding RandomizeHeroStats}"/>
+					<TextBlock Text="{Binding Path=#RandomizeHeroStats.Value, StringFormat='Randomize Hero Stats [{0:#,0.00;;Off}]'}"/>
+				</StackPanel>
             </WrapPanel>
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom">

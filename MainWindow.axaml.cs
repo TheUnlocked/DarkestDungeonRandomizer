@@ -10,10 +10,6 @@ namespace DarkestDungeonRandomizer
         {
             InitializeComponent();
             DataContext = new MainViewModel(this);
-            
-#if DEBUG
-            this.AttachDevTools();
-#endif
         }
 
         private void InitializeComponent()

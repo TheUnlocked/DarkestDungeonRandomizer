@@ -49,12 +49,13 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
         {
             int addin =
                 (options.RandomizeCurioEffects ? 1 : 0) +
-                (options.RandomizeCurioInteractions ? 2 : 0) +
-                (options.RandomizeCurioRegions ? 4 : 0) +
-                (options.IncludeShamblerAltar ? 8 : 0) +
-                (options.IncludeStoryCurios ? 16 : 0) +
-                (options.RandomizeMonsters ? 32 : 0) +
-                (options.RandomizeBosses ? 64 : 0);
+                (options.RandomizeCurioInteractions ? 1 << 1 : 0) +
+                (options.RandomizeCurioRegions ? 1 << 2 : 0) +
+                (options.IncludeShamblerAltar ? 1 << 3 : 0) +
+                (options.IncludeStoryCurios ? 1 << 4 : 0) +
+                (options.RandomizeMonsters ? 1 << 5 : 0) +
+                (options.RandomizeBosses ? 1 << 6 : 0) +
+                ((int)(options.RandomizeHeroStats * 4) << 7) /* 3 bits */;
             return addin.ToString("x").Trim('0') + options.Seed.ToString("x");
         }
     }

@@ -8,9 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DarkestDungeonRandomizer
+namespace DarkestDungeonRandomizer.Randomizers
 {
-    public class CurioShuffler
+    public class CurioShuffler : IRandomizer
     {
         private readonly MainViewModel model;
         private readonly Random random;
@@ -187,36 +187,52 @@ namespace DarkestDungeonRandomizer
                 var roomCurios = nonTreasures.Take(6);
                 var roomTreasures = treasures.Take(random.Next(4, 8));
 
+                var exampleDarkestEntryHall = newDict["hall_curios"][0];
+                var exampleDarkestEntryRoom = newDict["room_curios"][0];
+                var exampleDarkestEntryTreasure = newDict["room_treasures"][0];
+
                 newDict["hall_curios"] = hallCurios
-                    .Select(x => new Darkest.DarkestEntry("hall_curios", new Dictionary<string, IReadOnlyList<string>>()
+                    .Select(x => exampleDarkestEntryHall with
                     {
-                        { "chance", new[] { random.Next(1, 11).ToString() } },
-                        { "types", new[] { x.IdString } }
-                    }))
-                    .ToList();
+                        Properties = new Dictionary<string, IReadOnlyList<string>>()
+                        {
+                            { "chance", new[] { random.Next(1, 11).ToString() } },
+                            { "types", new[] { x.IdString } }
+                        }
+                    }).ToList();
                 if (!model.IncludeShamblerAltar)
                 {
-                    newDict["hall_curios"].Add(new Darkest.DarkestEntry("hall_curios", new Dictionary<string, IReadOnlyList<string>>() {
-                        { "chance", new[] { "1" } },
-                        { "types", new[] { "shamblers_altar" } }
-                    }));
+                    newDict["hall_curios"].Add(exampleDarkestEntryHall with
+                    {
+                        Properties = new Dictionary<string, IReadOnlyList<string>>() {
+                            { "chance", new[] { "1" } },
+                            { "types", new[] { "shamblers_altar" } }
+                        }
+                    });
                 }
                 newDict["room_curios"] = roomCurios
-                    .Select(x => new Darkest.DarkestEntry("room_curios", new Dictionary<string, IReadOnlyList<string>>()
+                    .Select(x => exampleDarkestEntryRoom with
                     {
-                        { "chance", new[] { random.Next(1, 11).ToString() } },
-                        { "types", new[] { x.IdString } }
-                    }))
-                    .ToList();
+                        Properties = new Dictionary<string, IReadOnlyList<string>>()
+                        {
+                            { "chance", new[] { random.Next(1, 11).ToString() } },
+                            { "types", new[] { x.IdString } }
+                        }
+                    }).ToList();
                 newDict["room_treasures"] = roomCurios
-                    .Select(x => new Darkest.DarkestEntry("room_curios", new Dictionary<string, IReadOnlyList<string>>()
+                    .Select(x => exampleDarkestEntryTreasure with
                     {
-                        { "chance", new[] { random.Next(1, 11).ToString() } },
-                        { "types", new[] { x.IdString } }
-                    }))
-                    .ToList();
+                        Properties = new Dictionary<string, IReadOnlyList<string>>()
+                        {
+                            { "chance", new[] { random.Next(1, 11).ToString() } },
+                            { "types", new[] { x.IdString } }
+                        }
+                    }).ToList();
 
-                newFiles[i] = (region, new Darkest(newDict.ToImmutableDictionary(p => p.Key, p => (IReadOnlyList<Darkest.DarkestEntry>)p.Value)));
+                newFiles[i] = (region, file with
+                {
+                    Entries = newDict.ToImmutableDictionary(p => p.Key, p => (IReadOnlyList<Darkest.DarkestEntry>)p.Value)
+                });
             }
             return newFiles;
         }

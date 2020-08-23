@@ -12,9 +12,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DarkestDungeonRandomizer
+namespace DarkestDungeonRandomizer.Randomizers
 {
-    public class EnemyShuffler
+    public class EnemyShuffler : IRandomizer
     {
         private readonly MainViewModel model;
         private readonly Random random;
@@ -44,10 +44,11 @@ namespace DarkestDungeonRandomizer
                     var dungeonFiles = dungeons.Select(dungeon => Darkest.LoadFromFile(model.GetGameDataPath(Path.Combine("dungeons", dungeon, $"{dungeon}.{level}.mash.darkest"))));
                     if (model.RandomizeMonsters)
                     {
-                        var (hallEnemies, roomEnemies) = GetAllEnemies(dungeonFiles);
+                        var (hallEnemies, roomEnemies, stallEnemies) = GetAllEnemies(dungeonFiles);
                         var hallEnemyReplacements = ShuffleMap(hallEnemies);
                         var roomEnemyReplacements = ShuffleMap(roomEnemies);
-                        shuffledDungeonFiles = ReplaceEnemies(dungeonFiles, hallEnemyReplacements, roomEnemyReplacements).ToArray();
+                        var stallEnemyReplacements = ShuffleMap(stallEnemies);
+                        shuffledDungeonFiles = ReplaceEnemies(dungeonFiles, hallEnemyReplacements, roomEnemyReplacements, stallEnemyReplacements).ToArray();
                     }
                     if (model.RandomizeBosses)
                     {
@@ -98,10 +99,11 @@ namespace DarkestDungeonRandomizer
                 .ToDictionary(p => p.a, p => p.b);
         }
 
-        private (IEnumerable<string> hall, IEnumerable<string> room) GetAllEnemies(IEnumerable<Darkest> files)
+        private (IEnumerable<string> hall, IEnumerable<string> room, IEnumerable<string> stall) GetAllEnemies(IEnumerable<Darkest> files)
         {
             HashSet<string> hallEnemies = new HashSet<string>();
             HashSet<string> roomEnemies = new HashSet<string>();
+            HashSet<string> stallEnemies = new HashSet<string>();
             foreach (var file in files)
             {
                 foreach (var (entryTag, entries) in file.Entries)
@@ -126,16 +128,26 @@ namespace DarkestDungeonRandomizer
                                 }
                             }
                             break;
+                        case "stall":
+                            foreach (var entry in entries)
+                            {
+                                foreach (var enemy in entry.Properties["types"])
+                                {
+                                    stallEnemies.Add(enemy);
+                                }
+                            }
+                            break;
                     }
                 }
             }
-            return (hallEnemies, roomEnemies);
+            return (hallEnemies, roomEnemies, stallEnemies);
         }
 
         private IEnumerable<Darkest> ReplaceEnemies(
             IEnumerable<Darkest> files,
             Dictionary<string, string> hallReplacements,
-            Dictionary<string, string> roomReplacements)
+            Dictionary<string, string> roomReplacements,
+            Dictionary<string, string> stallReplacements)
         {
             return files.Select(darkest =>
             {
@@ -152,6 +164,13 @@ namespace DarkestDungeonRandomizer
                 {
                     var newProps = entry.Properties.ToDictionary(p => p.Key, p => p.Value);
                     newProps["types"] = newProps["types"].Select(x => roomReplacements[x]).ToArray();
+                    return entry with { Properties = newProps };
+                }).ToImmutableArray();
+
+                newEntries["stall"] = newEntries["stall"].Select(entry =>
+                {
+                    var newProps = entry.Properties.ToDictionary(p => p.Key, p => p.Value);
+                    newProps["types"] = newProps["types"].Select(x => stallReplacements[x]).ToArray();
                     return entry with { Properties = newProps };
                 }).ToImmutableArray();
 

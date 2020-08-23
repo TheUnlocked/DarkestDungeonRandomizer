@@ -1,7 +1,8 @@
 ﻿using Avalonia.Controls;
 using DarkestDungeonRandomizer.DDFileTypes;
 using DarkestDungeonRandomizer.DDTypes;
-using MessageBox.Avalonia;
+using DarkestDungeonRandomizer.Randomizers;
+using DarkestDungeonRandomizer.MsgBox;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,7 @@ namespace DarkestDungeonRandomizer
         public bool IncludeStoryCurios { get; set; } = true;
         public bool RandomizeMonsters { get; set; } = true;
         public bool RandomizeBosses { get; set; } = true;
+        public double RandomizeHeroStats { get; set; } = 1;
 
         public DirectoryInfo ModDirectory { get; private set; } = null!;
         public Dictionary<string, Monster> Monsters { get; private set; } = null!;
@@ -59,7 +61,7 @@ namespace DarkestDungeonRandomizer
         {
             if (DDPath == "")
             {
-                MessageBoxManager.GetMessageBoxStandardWindow("Folder Not Found", "Please set the Darkest Dungeon game folder.", MessageBox.Avalonia.Enums.ButtonEnum.Ok).Show();
+                MessageBox.Show(window, "Please set the Darkest Dungeon game folder.", "Folder Not Found", MessageBox.MessageBoxButtons.Ok);
                 return;
             }
             try
@@ -70,21 +72,24 @@ namespace DarkestDungeonRandomizer
                 var rand = new Random(Seed);
                 new CurioShuffler(this, rand).Randomize();
                 new EnemyShuffler(this, rand).Randomize();
-                MessageBoxManager.GetMessageBoxStandardWindow(
-                    "Randomizer Finished", $"The randomizer mod has been created. Its tag is {ModCreator.GetRandomizerUUID(this)}",
-                    MessageBox.Avalonia.Enums.ButtonEnum.Ok
-                ).Show();
+                new HeroStatRandomizer(this, rand).Randomize();
+                MessageBox.Show(
+                    window,
+                    $"The randomizer mod has been created. Its tag is {ModCreator.GetRandomizerUUID(this)}",
+                    "Randomizer Finished",
+                    MessageBox.MessageBoxButtons.Ok);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
                 Console.WriteLine();
-                MessageBoxManager.GetMessageBoxStandardWindow(
-                    e.GetType().FullName, $"{e.Message}\n{e.StackTrace}",
-                    MessageBox.Avalonia.Enums.ButtonEnum.Ok,
-                    MessageBox.Avalonia.Enums.Icon.Error
-                ).Show();
+                
+                //MessageBoxManager.GetMessageBoxStandardWindow(
+                //    e.GetType().FullName, $"{e.Message}\n{e.StackTrace}",
+                //    MessageBox.Avalonia.Enums.ButtonEnum.Ok,
+                //    MessageBox.Avalonia.Enums.Icon.Error
+                //).Show();
             }
         }
 
@@ -127,7 +132,7 @@ namespace DarkestDungeonRandomizer
             }
             catch
             {
-                MessageBoxManager.GetMessageBoxStandardWindow("Folder Not Found", "Please set the Darkest Dungeon game folder.", MessageBox.Avalonia.Enums.ButtonEnum.Ok).Show();
+                MessageBox.Show(window, "Please set the Darkest Dungeon game folder.", "Folder Not Found", MessageBox.MessageBoxButtons.Ok);
             }
         }
 
@@ -142,7 +147,7 @@ namespace DarkestDungeonRandomizer
             }
             catch
             {
-                MessageBoxManager.GetMessageBoxStandardWindow("Folder Not Found", "Please set the Darkest Dungeon game folder.", MessageBox.Avalonia.Enums.ButtonEnum.Ok).Show();
+                MessageBox.Show(window, "Please set the Darkest Dungeon game folder.", "Folder Not Found", MessageBox.MessageBoxButtons.Ok);
             }
         }
     }
