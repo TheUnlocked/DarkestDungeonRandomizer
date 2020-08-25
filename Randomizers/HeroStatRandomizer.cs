@@ -45,7 +45,7 @@ namespace DarkestDungeonRandomizer.Randomizers
                         {
                             ("dmg", (x, _) => Math.Round(int.Parse(x) * battle[0]).ToString()),
                             ("crit", (x, _) => $"{Math.Round(int.Parse(x[..^1]) * battle[1])}%"),
-                            ("spd", (x, _) => Math.Round(int.Parse(x) * battle[2]).ToString())
+                            ("spd", (x, _) => Math.Round(int.Parse(x) + (battle[2] - 1) * 4).ToString())
                         }.AsEnumerable()),
                         ("armour", new(string, Darkest.DarkestPropertyConversionFunction)[]
                         {
