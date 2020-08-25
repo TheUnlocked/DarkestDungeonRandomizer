@@ -135,7 +135,9 @@ namespace DarkestDungeonRandomizer.DDFileTypes
             return result.ToString();
         }
 
-        public Darkest Replace(IEnumerable<(string entryType, IEnumerable<(string property, Func<string, string> conversion)> propReplacements)> entryMatches)
+
+        public delegate string DarkestPropertyConversionFunction(string original, int index);
+        public Darkest Replace(IEnumerable<(string entryType, IEnumerable<(string property, DarkestPropertyConversionFunction conversion)> propReplacements)> entryMatches)
         {
             var newEntries = Entries.ToDictionary(p => p.Key, p => p.Value);
 
@@ -146,7 +148,7 @@ namespace DarkestDungeonRandomizer.DDFileTypes
                     var newProps = entry.Properties.ToDictionary(p => p.Key, p => p.Value);
                     foreach (var (property, conversion) in propReplacements)
                     {
-                        newProps[property] = newProps[property].Select(x => conversion(x)).ToImmutableArray();
+                        newProps[property] = newProps[property].Select((x, i) => conversion(x, i)).ToImmutableArray();
                     }
                     return entry with { Properties = newProps };
                 }).ToImmutableArray();
@@ -155,12 +157,12 @@ namespace DarkestDungeonRandomizer.DDFileTypes
             return this with { Entries = newEntries };
         }
 
-        public Darkest Replace(string entryType, IEnumerable<(string property, Func<string, string> conversion)> replacements)
+        public Darkest Replace(string entryType, IEnumerable<(string property, DarkestPropertyConversionFunction conversion)> replacements)
         {
             return Replace(new[] { (entryType, replacements) });
         }
 
-        public Darkest Replace(string entryType, string property, Func<string, string> conversion)
+        public Darkest Replace(string entryType, string property, DarkestPropertyConversionFunction conversion)
         {
             return Replace(entryType, new[] { (property, conversion) });
         }

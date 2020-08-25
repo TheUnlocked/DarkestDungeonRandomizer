@@ -70,6 +70,9 @@
 					    Value="{Binding RandomizeHeroStats}"/>
 					<TextBlock Text="{Binding Path=#RandomizeHeroStats.Value, StringFormat='Randomize Hero Stats [{0:#,0.00;;Off}]'}"/>
 				</StackPanel>
+			    <CheckBox IsChecked="{Binding RandomizeCampingSkills}">
+                    <TextBlock>Randomize Camping Skills</TextBlock>
+                </CheckBox>
             </WrapPanel>
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom">

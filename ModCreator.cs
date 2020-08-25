@@ -55,7 +55,8 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
                 (options.IncludeStoryCurios ? 1 << 4 : 0) +
                 (options.RandomizeMonsters ? 1 << 5 : 0) +
                 (options.RandomizeBosses ? 1 << 6 : 0) +
-                ((int)(options.RandomizeHeroStats * 4) << 7) /* 3 bits */;
+                ((int)(options.RandomizeHeroStats * 4) << 7) + /* 3 bits */
+                (options.RandomizeCampingSkills ? 1 << 10 : 0);
             return addin.ToString("x").Trim('0') + options.Seed.ToString("x");
         }
     }

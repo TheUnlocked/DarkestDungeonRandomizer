@@ -26,9 +26,8 @@ namespace DarkestDungeonRandomizer.Randomizers
             if (model.RandomizeHeroStats > 0)
             {
                 var heroesDir = model.ModDirectory.CreateSubdirectory("heroes");
-                var heroNames = Directory.GetDirectories(Path.Combine(model.DDPath, "heroes")).Select(x => Path.GetFileName(x));
             
-                foreach (var heroName in heroNames)
+                foreach (var heroName in model.HeroNames)
                 {
                     var res = GenerateBalancedModifiers(7).Select(x => Math.Round(x * baseResistance).ToString()).ToArray();
                     var battle = GenerateBalancedModifiers(5);
@@ -36,22 +35,22 @@ namespace DarkestDungeonRandomizer.Randomizers
                     var darkest = Darkest.LoadFromFile(model.GetGameDataPath(Path.Combine("heroes", heroName, $"{heroName}.info.darkest")));
 
                     var randomized = darkest.Replace(new[] {
-                        ("resistances", new(string, Func<string, string>)[]
+                        ("resistances", new(string, Darkest.DarkestPropertyConversionFunction)[]
                         {
-                            ("stun", _ => $"{res[0]}%"), ("poison", _ => $"{res[1]}%"), ("bleed", _ => $"{res[2]}%"),
-                            ("disease", _ => $"{res[3]}%"), ("move", _ => $"{res[4]}%"), ("debuff", _ => $"{res[5]}%"),
-                            ("trap", _ => $"{res[6]}%")
+                            ("stun", (_, _) => $"{res[0]}%"), ("poison", (_, _) => $"{res[1]}%"), ("bleed", (_, _) => $"{res[2]}%"),
+                            ("disease", (_, _) => $"{res[3]}%"), ("move", (_, _) => $"{res[4]}%"), ("debuff", (_, _) => $"{res[5]}%"),
+                            ("trap", (_, _) => $"{res[6]}%")
                         }.AsEnumerable()),
-                        ("weapon", new(string, Func<string, string>)[]
+                        ("weapon", new(string, Darkest.DarkestPropertyConversionFunction)[]
                         {
-                            ("dmg", x => Math.Round(int.Parse(x) * battle[0]).ToString()),
-                            ("crit", x => $"{Math.Round(int.Parse(x[..^1]) * battle[1])}%"),
-                            ("spd", x => Math.Round(int.Parse(x) * battle[2]).ToString())
+                            ("dmg", (x, _) => Math.Round(int.Parse(x) * battle[0]).ToString()),
+                            ("crit", (x, _) => $"{Math.Round(int.Parse(x[..^1]) * battle[1])}%"),
+                            ("spd", (x, _) => Math.Round(int.Parse(x) * battle[2]).ToString())
                         }.AsEnumerable()),
-                        ("armour", new(string, Func<string, string>)[]
+                        ("armour", new(string, Darkest.DarkestPropertyConversionFunction)[]
                         {
-                            ("def", x => $"{Math.Round(double.Parse(x[..^1]) * battle[3], 1)}%"),
-                            ("hp", x => Math.Round(int.Parse(x) * battle[4]).ToString())
+                            ("def", (x, _) => $"{Math.Round(double.Parse(x[..^1]) * battle[3], 1)}%"),
+                            ("hp", (x, _) => Math.Round(int.Parse(x) * battle[4]).ToString())
                         }.AsEnumerable())
                     });
 

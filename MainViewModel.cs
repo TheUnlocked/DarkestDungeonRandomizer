@@ -32,9 +32,11 @@ namespace DarkestDungeonRandomizer
         public bool RandomizeMonsters { get; set; } = true;
         public bool RandomizeBosses { get; set; } = true;
         public double RandomizeHeroStats { get; set; } = 1;
+        public bool RandomizeCampingSkills { get; set; } = true;
 
         public DirectoryInfo ModDirectory { get; private set; } = null!;
         public Dictionary<string, Monster> Monsters { get; private set; } = null!;
+        public string[] HeroNames { get; private set; } = null!;
 
 
         private readonly Window window;
@@ -73,6 +75,7 @@ namespace DarkestDungeonRandomizer
                 new CurioShuffler(this, rand).Randomize();
                 new EnemyShuffler(this, rand).Randomize();
                 new HeroStatRandomizer(this, rand).Randomize();
+                new CampingSkillRandomizer(this, rand).Randomize();
                 MessageBox.Show(
                     window,
                     $"The randomizer mod has been created. Its tag is {ModCreator.GetRandomizerUUID(this)}",
@@ -110,6 +113,7 @@ namespace DarkestDungeonRandomizer
                     );
                 }
             }
+            HeroNames = Directory.GetDirectories(Path.Combine(DDPath, "heroes")).Select(x => Path.GetFileName(x)).ToArray();
         }
 
         public string GetGameDataPath(string partialPath)
