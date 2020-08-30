@@ -22,6 +22,7 @@ namespace DarkestDungeonRandomizer
         /// </summary>
         public string DDPath { get; set; } = "";
 
+        public string Tag { get; set; } = "";
         public int Seed { get; set; } = 0;
 
         public bool RandomizeCurioRegions { get; set; } = true;
@@ -44,19 +45,33 @@ namespace DarkestDungeonRandomizer
         public MainViewModel(Window window)
         {
             this.window = window;
+            this.RaisePropertyChanged();
         }
 
         public async Task SelectGameDirectory()
         {
             OpenFolderDialog dialog = new OpenFolderDialog();
             DDPath = await dialog.ShowAsync(window);
-            this.RaisePropertyChanged("DDPath");
+            this.RaisePropertyChanged(nameof(DDPath));
         }
 
         public void RandomizeSeed()
         {
             Seed = new Random().Next();
-            this.RaisePropertyChanged("Seed");
+            this.RaisePropertyChanged(nameof(Seed));
+        }
+
+        public void LoadOptionsFromTag()
+        {
+            try
+            {
+                ModCreator.PopulateRandomizerOptionsFromUUID(this, Tag);
+                this.RaisePropertyChanged("");
+            }
+            catch
+            {
+                MessageBox.Show(window, $"Provided tag \"{Tag}\" is either invalid or was created with an incompatible version of the randomizer.", "Invalid Tag", MessageBox.MessageBoxButtons.Ok);
+            }
         }
 
         public void CreateRandomizerMod()
@@ -76,9 +91,11 @@ namespace DarkestDungeonRandomizer
                 new EnemyShuffler(this, rand).Randomize();
                 new HeroStatRandomizer(this, rand).Randomize();
                 new CampingSkillRandomizer(this, rand).Randomize();
+                Tag = ModCreator.GetRandomizerUUID(this);
+                this.RaisePropertyChanged(nameof(Tag));
                 MessageBox.Show(
                     window,
-                    $"The randomizer mod has been created. Its tag is {ModCreator.GetRandomizerUUID(this)}",
+                    $"The randomizer mod has been created. Its tag is {Tag}",
                     "Randomizer Finished",
                     MessageBox.MessageBoxButtons.Ok);
             }

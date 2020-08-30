@@ -59,5 +59,20 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
                 (options.RandomizeCampingSkills ? 1 << 10 : 0);
             return addin.ToString("x").Trim('0') + options.Seed.ToString("x");
         }
+
+        public static void PopulateRandomizerOptionsFromUUID(MainViewModel model, string tag)
+        {
+            model.Seed = int.Parse(tag[^8..], System.Globalization.NumberStyles.HexNumber);
+            var addin = int.Parse(tag[..^8], System.Globalization.NumberStyles.HexNumber);
+            model.RandomizeCurioEffects = (addin & 1) != 0;
+            model.RandomizeCurioInteractions = (addin & (1 << 1)) != 0;
+            model.RandomizeCurioRegions = (addin & (1 << 2)) != 0;
+            model.IncludeShamblerAltar = (addin & (1 << 3)) != 0;
+            model.IncludeStoryCurios = (addin & (1 << 4)) != 0;
+            model.RandomizeMonsters = (addin & (1 << 5)) != 0;
+            model.RandomizeBosses = (addin & (1 << 6)) != 0;
+            model.RandomizeHeroStats = ((addin & (7 << 7)) >> 7) / 4d;
+            model.RandomizeCampingSkills = (addin & (1 << 10)) != 0;
+        }
     }
 }

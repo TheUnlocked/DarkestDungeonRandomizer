@@ -32,13 +32,22 @@
                     <TextBlock Margin="0">...</TextBlock>
                 </Button>
             </Grid>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock>Seed: </TextBlock>
-                <TextBox Width="140" Height="26" Grid.Row="1" Grid.Column="1" Text="{Binding Seed}"/>
-                <Button Command="{Binding RandomizeSeed}">
-                    <TextBlock Margin="0">Randomize Seed</TextBlock>
-                </Button>
-            </StackPanel>
+			<DockPanel>
+				<StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+					<TextBlock>Tag: </TextBlock>
+					<TextBox Width="140" Height="26" Grid.Row="1" Grid.Column="1" Text="{Binding Tag}"/>
+					<Button Command="{Binding LoadOptionsFromTag}">
+						<TextBlock Margin="0">Load Options From Tag</TextBlock>
+					</Button>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock>Seed: </TextBlock>
+					<TextBox Width="140" Height="26" Grid.Row="1" Grid.Column="1" Text="{Binding Seed}"/>
+					<Button Command="{Binding RandomizeSeed}">
+						<TextBlock Margin="0">Randomize Seed</TextBlock>
+					</Button>
+				</StackPanel>
+			</DockPanel>
             <WrapPanel>
                 <CheckBox IsChecked="{Binding RandomizeCurioRegions}">
                     <TextBlock>Shuffle Curio Regions</TextBlock>
