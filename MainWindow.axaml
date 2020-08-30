@@ -82,6 +82,9 @@
 			    <CheckBox IsChecked="{Binding RandomizeCampingSkills}">
                     <TextBlock>Randomize Camping Skills</TextBlock>
                 </CheckBox>
+				<CheckBox IsChecked="{Binding RandomizeHeroSkills}">
+					<TextBlock>Shuffle Hero Skills</TextBlock>
+				</CheckBox>
             </WrapPanel>
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom">

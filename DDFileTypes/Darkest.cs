@@ -115,12 +115,12 @@ namespace DarkestDungeonRandomizer.DDFileTypes
         public override string ToString()
         {
             var result = new StringBuilder();
-            foreach (var pair in Entries.OrderBy(p => EntryTypeOrder[p.Key]))
+            foreach (var pair in Entries.OrderBy(p => EntryTypeOrder.GetValueOrDefault(p.Key, int.MaxValue)))
             {
                 foreach (var entry in pair.Value)
                 {
                     result.Append(entry.Type).Append(": ");
-                    foreach (var propPair in entry.Properties.OrderBy(p => entry.PropOrder[p.Key]))
+                    foreach (var propPair in entry.Properties.OrderBy(p => entry.PropOrder.GetValueOrDefault(p.Key, int.MaxValue)))
                     {
                         result.Append('.').Append(propPair.Key).Append(' ');
                         foreach (var value in propPair.Value)
@@ -128,27 +128,26 @@ namespace DarkestDungeonRandomizer.DDFileTypes
                             result.Append(value).Append(' ');
                         }
                     }
-                    result.Append('\n');
+                    result.Append("\r\n");
                 }
             }
-            result.Length -= 1;
             return result.ToString();
         }
 
 
-        public delegate string DarkestPropertyConversionFunction(string original, int index);
+        public delegate string DarkestPropertyConversionFunction(string original, int entryIndex, int propertyIndex);
         public Darkest Replace(IEnumerable<(string entryType, IEnumerable<(string property, DarkestPropertyConversionFunction conversion)> propReplacements)> entryMatches)
         {
             var newEntries = Entries.ToDictionary(p => p.Key, p => p.Value);
 
             foreach (var (entryType, propReplacements) in entryMatches)
             {
-                newEntries[entryType] = newEntries[entryType].Select(entry =>
+                newEntries[entryType] = newEntries[entryType].Select((entry, entryIndex) =>
                 {
                     var newProps = entry.Properties.ToDictionary(p => p.Key, p => p.Value);
                     foreach (var (property, conversion) in propReplacements)
                     {
-                        newProps[property] = newProps[property].Select((x, i) => conversion(x, i)).ToImmutableArray();
+                        newProps[property] = newProps[property].Select((x, propIndex) => conversion(x, entryIndex, propIndex)).ToImmutableArray();
                     }
                     return entry with { Properties = newProps };
                 }).ToImmutableArray();
@@ -165,6 +164,35 @@ namespace DarkestDungeonRandomizer.DDFileTypes
         public Darkest Replace(string entryType, string property, DarkestPropertyConversionFunction conversion)
         {
             return Replace(entryType, new[] { (property, conversion) });
+        }
+
+        public Darkest WithoutProperty(string entryType, string property)
+        {
+            var newEntries = Entries.ToDictionary(p => p.Key, p => p.Value);
+
+            newEntries[entryType] = newEntries[entryType].Select(entry =>
+            {
+                var newProps = entry.Properties.ToDictionary(p => p.Key, p => p.Value);
+                newProps.Remove(property);
+                return entry with { Properties = newProps };
+            }).ToImmutableArray();
+
+            return this with { Entries = newEntries };
+        }
+
+        public delegate string[] DarkestPropertyAdd(int entryIndex);
+        public Darkest WithProperty(string entryType, string property, DarkestPropertyAdd adder)
+        {
+            var newEntries = Entries.ToDictionary(p => p.Key, p => p.Value);
+
+            newEntries[entryType] = newEntries[entryType].Select((entry, entryIndex) =>
+            {
+                var newProps = entry.Properties.ToDictionary(p => p.Key, p => p.Value);
+                newProps[property] = adder(entryIndex);
+                return entry with { Properties = newProps };
+            }).ToImmutableArray();
+
+            return this with { Entries = newEntries };
         }
     }
 }

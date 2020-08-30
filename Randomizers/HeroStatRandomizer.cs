@@ -37,20 +37,20 @@ namespace DarkestDungeonRandomizer.Randomizers
                     var randomized = darkest.Replace(new[] {
                         ("resistances", new(string, Darkest.DarkestPropertyConversionFunction)[]
                         {
-                            ("stun", (_, _) => $"{res[0]}%"), ("poison", (_, _) => $"{res[1]}%"), ("bleed", (_, _) => $"{res[2]}%"),
-                            ("disease", (_, _) => $"{res[3]}%"), ("move", (_, _) => $"{res[4]}%"), ("debuff", (_, _) => $"{res[5]}%"),
-                            ("trap", (_, _) => $"{res[6]}%")
+                            ("stun", (_, _, _) => $"{res[0]}%"), ("poison", (_, _, _) => $"{res[1]}%"), ("bleed", (_, _, _) => $"{res[2]}%"),
+                            ("disease", (_, _, _) => $"{res[3]}%"), ("move", (_, _, _) => $"{res[4]}%"), ("debuff", (_, _, _) => $"{res[5]}%"),
+                            ("trap", (_, _, _) => $"{res[6]}%")
                         }.AsEnumerable()),
                         ("weapon", new(string, Darkest.DarkestPropertyConversionFunction)[]
                         {
-                            ("dmg", (x, _) => Math.Round(int.Parse(x) * battle[0]).ToString()),
-                            ("crit", (x, _) => $"{Math.Round(int.Parse(x[..^1]) * battle[1])}%"),
-                            ("spd", (x, _) => Math.Round(int.Parse(x) * battle[2]).ToString())
+                            ("dmg", (x, _, _) => Math.Round(int.Parse(x) * battle[0]).ToString()),
+                            ("crit", (x, _, _) => $"{Math.Round(int.Parse(x[..^1]) * battle[1])}%"),
+                            ("spd", (x, _, _) => Math.Round(int.Parse(x) * battle[2]).ToString())
                         }.AsEnumerable()),
                         ("armour", new(string, Darkest.DarkestPropertyConversionFunction)[]
                         {
-                            ("def", (x, _) => $"{Math.Round(double.Parse(x[..^1]) * battle[3], 1)}%"),
-                            ("hp", (x, _) => Math.Round(int.Parse(x) * battle[4]).ToString())
+                            ("def", (x, _, _) => $"{Math.Round(double.Parse(x[..^1]) * battle[3], 1)}%"),
+                            ("hp", (x, _, _) => Math.Round(int.Parse(x) * battle[4]).ToString())
                         }.AsEnumerable())
                     });
 

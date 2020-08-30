@@ -34,6 +34,7 @@ namespace DarkestDungeonRandomizer
         public bool RandomizeBosses { get; set; } = true;
         public double RandomizeHeroStats { get; set; } = 1;
         public bool RandomizeCampingSkills { get; set; } = true;
+        public bool RandomizeHeroSkills { get; set; } = true;
 
         public DirectoryInfo ModDirectory { get; private set; } = null!;
         public Dictionary<string, Monster> Monsters { get; private set; } = null!;
@@ -87,10 +88,22 @@ namespace DarkestDungeonRandomizer
 
                 ModDirectory = ModCreator.CreateMod(this);
                 var rand = new Random(Seed);
+
                 new CurioShuffler(this, rand).Randomize();
                 new EnemyShuffler(this, rand).Randomize();
                 new HeroStatRandomizer(this, rand).Randomize();
                 new CampingSkillRandomizer(this, rand).Randomize();
+                new HeroSkillShuffler(this, rand).Randomize();
+
+                // This should convert localization and such.
+                // Currently requires a keypress to make it go away. Not sure how to fix that yet.
+                var uploadProcess = Process.Start(new ProcessStartInfo(Path.Combine(DDPath, "_windows", "steam_workshop_upload.exe"))
+                {
+                    WorkingDirectory = Path.Combine(DDPath, "_windows"),
+                    Arguments = "\"" + Path.Combine(ModDirectory.FullName, "project.xml") + "\""
+                });
+                window.Closing += (_, _) => uploadProcess?.Kill();
+
                 Tag = ModCreator.GetRandomizerUUID(this);
                 this.RaisePropertyChanged(nameof(Tag));
                 MessageBox.Show(
@@ -104,12 +117,13 @@ namespace DarkestDungeonRandomizer
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
                 Console.WriteLine();
-                
-                //MessageBoxManager.GetMessageBoxStandardWindow(
-                //    e.GetType().FullName, $"{e.Message}\n{e.StackTrace}",
-                //    MessageBox.Avalonia.Enums.ButtonEnum.Ok,
-                //    MessageBox.Avalonia.Enums.Icon.Error
-                //).Show();
+
+                MessageBox.Show(
+                    window,
+                    $"{e.Message}\n{e.StackTrace}",
+                    e.GetType().FullName ?? "Exception",
+                    MessageBox.MessageBoxButtons.Ok
+                );
             }
         }
 

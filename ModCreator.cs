@@ -34,7 +34,7 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 	<Language>english</Language>
 	<UpdateDetails/>
 	<Visibility>hidden</Visibility>
-	<UploadMode>direct_upload</UploadMode>
+	<UploadMode>dont_submit</UploadMode>
 	<VersionMajor>0</VersionMajor>
 	<VersionMinor>0</VersionMinor>
 	<TargetBuild>0</TargetBuild>

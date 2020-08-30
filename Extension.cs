@@ -30,7 +30,7 @@ namespace DarkestDungeonRandomizer
             }
         }
 
-        public static T[] Shuffle<T>(this T[] original, Random random)
+        public static T[] Shuffle<T>(this IEnumerable<T> original, Random random)
         {
             T[] newData = original.ToArray();
             int n = newData.Length;

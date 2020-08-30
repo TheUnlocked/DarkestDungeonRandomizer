@@ -35,7 +35,7 @@ namespace DarkestDungeonRandomizer.Randomizers
                 // Make in-game layout look prettier :)
                 file["configuration"]!["class_specific_number_of_classes_threshold"] = 100;
                 var layoutFile = Darkest.LoadFromFile(model.GetGameDataPath(Path.Combine("campaign", "town", "buildings", "camping_trainer", "camping_trainer.layout.darkest")));
-                layoutFile.Replace("camping_trainer_class_specific_skill_grid_layout", "skill_spacing", (x, i) => i == 1 ? "170" : x)
+                layoutFile.Replace("camping_trainer_class_specific_skill_grid_layout", "skill_spacing", (x, _, i) => i == 1 ? "170" : x)
                     .WriteToFile(Path.Combine(
                         model.ModDirectory
                             .CreateSubdirectory("campaign")
