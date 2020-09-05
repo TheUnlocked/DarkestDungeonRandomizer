@@ -95,14 +95,12 @@ namespace DarkestDungeonRandomizer
                 new CampingSkillRandomizer(this, rand).Randomize();
                 new HeroSkillShuffler(this, rand).Randomize();
 
-                // This should convert localization and such.
-                // Currently requires a keypress to make it go away. Not sure how to fix that yet.
-                var uploadProcess = Process.Start(new ProcessStartInfo(Path.Combine(DDPath, "_windows", "steam_workshop_upload.exe"))
+                Process.Start(new ProcessStartInfo("cmd.exe", $"/C echo/ | \"{Path.Combine(DDPath, "_windows", "steam_workshop_upload.exe")}\" \"{Path.Combine(ModDirectory.FullName, "project.xml")}\"")
                 {
                     WorkingDirectory = Path.Combine(DDPath, "_windows"),
-                    Arguments = "\"" + Path.Combine(ModDirectory.FullName, "project.xml") + "\""
-                });
-                window.Closing += (_, _) => uploadProcess?.Kill();
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                })?.WaitForExit();
 
                 Tag = ModCreator.GetRandomizerUUID(this);
                 this.RaisePropertyChanged(nameof(Tag));

@@ -77,7 +77,7 @@ namespace DarkestDungeonRandomizer.Randomizers
                         File.WriteAllText(Path.Combine(questDir.FullName, "quest.types.json"), questTypeFile.ToString());
                     }
 
-                    dungeons.Zip(shuffledDungeonFiles, (dungeon, darkest) =>
+                    _ = dungeons.Zip(shuffledDungeonFiles, (dungeon, darkest) =>
                     {
                         darkest.WriteToFile(Path.Combine(model.ModDirectory.FullName, "dungeons", dungeon, $"{dungeon}.{level}.mash.darkest"));
                         return 0;
