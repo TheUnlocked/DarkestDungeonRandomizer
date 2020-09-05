@@ -42,9 +42,9 @@ namespace DarkestDungeonRandomizer
         public Dictionary<string, Monster> Monsters { get; private set; } = null!;
         public string[] HeroNames { get; private set; } = null!;
 
-        public string BuildDate { get; } =
-            File.GetLastWriteTime(Assembly.GetExecutingAssembly().Location)
-            .ToString("g", CultureInfo.GetCultureInfo("en-US"));
+        //public string BuildDate { get; } =
+        //    File.GetLastWriteTime(Assembly.GetExecutingAssembly().Location)
+        //    .ToString("g", CultureInfo.GetCultureInfo("en-US"));
 
         private readonly Window window;
 
