@@ -194,5 +194,15 @@ namespace DarkestDungeonRandomizer.DDFileTypes
 
             return this with { Entries = newEntries };
         }
+
+        public Darkest AddEntries(params DarkestEntry[] entries)
+        {
+            var newEntries = Entries.ToDictionary(p => p.Key, p => p.Value.ToList());
+            foreach (var entry in entries)
+            {
+                newEntries.GetValueOrSetDefault(entry.Type, new List<DarkestEntry>()).Add(entry);
+            }
+            return this with { Entries = newEntries.ToDictionary(p => p.Key, p => (IReadOnlyList<DarkestEntry>)p.Value) };
+        }
     }
 }

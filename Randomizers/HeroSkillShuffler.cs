@@ -1,4 +1,5 @@
 ﻿using DarkestDungeonRandomizer.DDFileTypes;
+using DynamicData;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -27,29 +28,13 @@ namespace DarkestDungeonRandomizer.Randomizers
         {
             if (model.RandomizeHeroSkills)
             {
-                Dictionary<string, string[]> heroSkillMappings = new();
                 var heroesDir = model.ModDirectory.CreateSubdirectory("heroes");
                 foreach (var hero in model.HeroNames)
                 {
                     heroesDir.CreateSubdirectory(hero);
-                    heroSkillMappings[hero] = new string[model.HeroNames.Length];
                 }
 
-                // Making sure nothing wonky happens with transform getting swapped out
-                var heroesWithoutAbom = model.HeroNames.Where(x => x != ABOM);
-                foreach (var pair in heroesWithoutAbom.Shuffle(random).Zip(heroesWithoutAbom, (shuffled, original) => (original, shuffled)))
-                {
-                    heroSkillMappings[pair.shuffled][0] = pair.original;
-                }
-                heroSkillMappings[ABOM][0] = ABOM;
-
-                for (int i = 1; i < 7; i++)
-                {
-                    foreach (var pair in model.HeroNames.Shuffle(random).Zip(model.HeroNames, (shuffled, original) => (original, shuffled)))
-                    {
-                        heroSkillMappings[pair.shuffled][i] = pair.original;
-                    }
-                }
+                var heroSkillMappings = GenerateHeroSkillMappings();
 
                 var heroFiles = model.HeroNames.ToDictionary(
                     name => name,
@@ -73,8 +58,7 @@ namespace DarkestDungeonRandomizer.Randomizers
                     if (hero == "highwayman") highwaymanInfo = info;
                     else if (hero == "crusader") crusaderInfo = info;
 
-                    var skillNames = info.Entries["combat_skill"].Select(x => x.Properties["id"][0][1..^1])
-                        .Distinct().ToArray();
+                    var skillNames = GetSkillsInOrder(art);
 
                     // Localization
                     for (int i = 0; i < 7; i++)
@@ -99,18 +83,58 @@ namespace DarkestDungeonRandomizer.Randomizers
             }
         }
 
+        private Dictionary<string, string[]> GenerateHeroSkillMappings()
+        {
+            Dictionary<string, string[]> heroSkillMappings = new();
+            foreach (var hero in model.HeroNames)
+            {
+                heroSkillMappings[hero] = new string[model.HeroNames.Length];
+            }
+
+            // Making sure nothing wonky happens with transform getting swapped out
+            var heroesWithoutAbom = model.HeroNames.Where(x => x != ABOM);
+            foreach (var pair in heroesWithoutAbom.Shuffle(random).Zip(heroesWithoutAbom, (shuffled, original) => (original, shuffled)))
+            {
+                heroSkillMappings[pair.shuffled][0] = pair.original;
+            }
+            heroSkillMappings[ABOM][0] = ABOM;
+
+            for (int i = 1; i < 7; i++)
+            {
+                foreach (var pair in model.HeroNames.Shuffle(random).Zip(model.HeroNames, (shuffled, original) => (original, shuffled)))
+                {
+                    heroSkillMappings[pair.shuffled][i] = pair.original;
+                }
+            }
+            return heroSkillMappings;
+        }
+
         private (Darkest info, Darkest art) SwapCombatSkills(Dictionary<string, (Darkest info, Darkest art)> files, string hero, Dictionary<string, string[]> mappings)
         {
             var (info, art) = files[hero];
 
+            var skills = GetSkillsInOrder(art);
+
             var skillMappings = new Dictionary<string, string>();
             var newCombatEntries = new List<Darkest.DarkestEntry>();
+
+            string? riposte = null;
+
             for (int i = 0; i < 7; i++)
             {
-                skillMappings[files[hero].info.Entries["combat_skill"].Skip(i * 5).First().Properties["id"][0][1..^1]] =
-                    files[mappings[hero][i]].info.Entries["combat_skill"].Skip(i * 5).First().Properties["id"][0][1..^1];
+                var newSkill = GetSkillsInOrder(files[mappings[hero][i]].art)[i];
+                skillMappings[skills[i]] = newSkill;
 
-                newCombatEntries.AddRange(files[mappings[hero][i]].info.Entries["combat_skill"].Skip(i * 5).Take(5));
+                riposte ??= newSkill switch
+                {
+                    "retribution" => "man_at_arms",
+                    "duelist_advance" => "highwayman",
+                    _ => null
+                };
+
+                newCombatEntries.AddRange(files[mappings[hero][i]].info.Entries["combat_skill"]
+                    .Where(x => x.Properties["id"][0][1..^1] == newSkill)
+                    .OrderBy(x => x.Properties["level"][0].TryParseInt()));
             }
 
             var newInfoEntries = info.Entries.ToDictionary(p => p.Key, p => p.Value);
@@ -136,7 +160,6 @@ namespace DarkestDungeonRandomizer.Randomizers
                     _ => BOTH
                 }).WithProperty("combat_skill", "generation_guaranteed", i => i == 0 ? new[] { "true" } : new[] { "false" });
             }
-
 
             void SwapSkillUpgradesRefStrings(JToken obj, string prop)
             {
@@ -173,6 +196,23 @@ namespace DarkestDungeonRandomizer.Randomizers
 
             var newArt = art.Replace("combat_skill", "id", (_, i, _) => files[mappings[hero][i]].art.Entries["combat_skill"][i].Properties["id"][0]);
 
+            if (riposte != null)
+            {
+                newInfo = newInfo.AddEntries(files[riposte].info.Entries["riposte_skill"][0])
+                    with { EntryTypeOrder = files[riposte].info.EntryTypeOrder };
+
+                var replacementGraphics = newArt.Entries["combat_skill"]
+                    .Where(x => x.Properties.ContainsKey("anim") && x.Properties.ContainsKey("fx") && x.Properties.ContainsKey("targchestfx"))
+                    .First();
+                newArt = newArt.AddEntries(files[riposte].art.Entries["riposte_skill"][0])
+                    .Replace("riposte_skill", new[] {
+                        ("anim", (Darkest.DarkestPropertyConversionFunction)((_, _, _) => replacementGraphics.Properties["anim"][0])),
+                        ("fx", (Darkest.DarkestPropertyConversionFunction)((_, _, _) => replacementGraphics.Properties["fx"][0])),
+                        ("targchestfx", (Darkest.DarkestPropertyConversionFunction)((_, _, _) => replacementGraphics.Properties["targchestfx"][0]))
+                    })
+                    with { EntryTypeOrder = files[riposte].art.EntryTypeOrder };
+            }
+
             return (newInfo, newArt);
         }
 
@@ -181,6 +221,14 @@ namespace DarkestDungeonRandomizer.Randomizers
             "one", "two", "three", "four",
             "five", "six", "seven"
         };
+
+        private string[] GetSkillsInOrder(Darkest artFile)
+        {
+            return artFile.Entries["combat_skill"]
+                .OrderBy(x => numberNames.IndexOf(x.Properties["icon"][0][1..^1]))
+                .Select(x => x.Properties["id"][0][1..^1])
+                .ToArray();
+        }
 
         private void SwapSkillIcons(Dictionary<string, string[]> heroSkillMappings)
         {
