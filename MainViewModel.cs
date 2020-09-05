@@ -17,7 +17,8 @@ using System.Globalization;
 
 namespace DarkestDungeonRandomizer
 {
-    public class MainViewModel : ReactiveObject
+    [IncludeBuildDateProperty("BuildDate")]
+    public partial class MainViewModel : ReactiveObject
     {
         /// <summary>
         /// If attempting to read game data, use GetGameDataPath instead.
@@ -41,10 +42,6 @@ namespace DarkestDungeonRandomizer
         public DirectoryInfo ModDirectory { get; private set; } = null!;
         public Dictionary<string, Monster> Monsters { get; private set; } = null!;
         public string[] HeroNames { get; private set; } = null!;
-
-        public string BuildDate { get; } =
-            File.GetLastWriteTime(Assembly.GetExecutingAssembly().Location)
-            .ToString("g", CultureInfo.GetCultureInfo("en-US"));
 
         private readonly Window window;
 
