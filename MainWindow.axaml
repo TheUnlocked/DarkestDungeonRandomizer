@@ -5,7 +5,7 @@
         mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="250"
         Width="700" Height="250"
         x:Class="DarkestDungeonRandomizer.MainWindow"
-        Title="Darkest Dungeon Randomizer">
+        Title="{Binding Path=BuildVersion, StringFormat=Darkest Dungeon Randomizer {0}}">
     <Window.Styles>
         <Style Selector="Button, CheckBox, TextBox, TextBlock, Slider">
             <Setter Property="Margin" Value="3"/>
