@@ -73,6 +73,7 @@ namespace DarkestDungeonRandomizer.DDTypes
         Nothing,
         Loot,
         HealGeneral,
+        Stress,
         HealStress,
         PurgeNegative,
         Buff,
@@ -92,6 +93,12 @@ namespace DarkestDungeonRandomizer.DDTypes
         public WeightedCurioEffect Scouting { get; init; } = new WeightedCurioEffect(CurioEffectType.Scouting);
         public WeightedCurioEffect Teleport { get; init; } = new WeightedCurioEffect(CurioEffectType.Teleport);
         public WeightedCurioEffect Disease { get; init; } = new WeightedCurioEffect(CurioEffectType.Disease);
+
+        public float TotalWeight { get
+            {
+                return Nothing.Weight + Loot.Weight + Quirk.Weight + Effect.Weight +
+                    Purge.Weight + Scouting.Weight + Teleport.Weight + Disease.Weight;
+            } }
     }
 
     public record CurioEffect(CurioEffectType Type)

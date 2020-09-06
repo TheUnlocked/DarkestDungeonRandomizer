@@ -23,6 +23,9 @@ namespace DarkestDungeonRandomizer.Randomizers
 
         public void Randomize()
         {
+            // no need to do anything if nothing is enabled...
+            if (!(model.RandomizeCurioEffects || model.RandomizeCurioInteractions || model.RandomizeCurioRegions)) return;
+
             var curiosFolder = model.ModDirectory.CreateSubdirectory("curios");
             var curios = CurioTypeLibrary.LoadFromFile(model.GetGameDataPath(Path.Combine("curios", "curio_type_library.csv")));
             var shuffledCurios = ShuffleCurioTypeLibrary(curios);
@@ -56,15 +59,15 @@ namespace DarkestDungeonRandomizer.Randomizers
             var curios = curioTypeLibrary.Curios;
             if (!model.IncludeShamblerAltar)
             {
-                curios = curioTypeLibrary.Curios.Where(x => x.IdString != "shamblers_altar").ToArray();
+                curios = curios.Where(x => x.IdString != "shamblers_altar").ToArray();
             }
             if (!model.IncludeStoryCurios)
             {
-                curios = curioTypeLibrary.Curios.Where(x => x.FullCurio).ToArray();
+                curios = curios.Where(x => x.FullCurio).ToArray();
             }
 
-            var regions = curioTypeLibrary.Curios.Select(x => x.RegionFound).ToArray();
-            var curioEffectLists = curioTypeLibrary.Curios.Select(x => x.Effects);
+            var regions = curios.Select(x => x.RegionFound).ToArray();
+            var curioEffectLists = curios.Select(x => x.Effects);
             if (model.RandomizeCurioRegions)
             {
                 regions = regions.Shuffle(random);
@@ -155,7 +158,7 @@ namespace DarkestDungeonRandomizer.Randomizers
 
             if (!model.IncludeShamblerAltar)
             {
-                curios = curios.Concat(new[] { curios.First(x => x.IdString != "shamblers_altar") }).ToArray();
+                curios = curios.Concat(new[] { curioTypeLibrary.Curios.First(x => x.IdString == "shamblers_altar") }).ToArray();
             }
             if (!model.IncludeStoryCurios)
             {
