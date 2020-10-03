@@ -39,8 +39,8 @@ namespace DarkestDungeonRandomizer.Randomizers
                 var heroFiles = model.HeroNames.ToDictionary(
                     name => name,
                     name => (
-                        Darkest.LoadFromFile(model.GetGameDataPath(Path.Combine("heroes", name, $"{name}.info.darkest"))),
-                        Darkest.LoadFromFile(model.GetGameDataPath(Path.Combine("heroes", name, $"{name}.art.darkest")))
+                        info: Darkest.LoadFromFile(model.GetGameDataPath(Path.Combine("heroes", name, $"{name}.info.darkest"))),
+                        art: Darkest.LoadFromFile(model.GetGameDataPath(Path.Combine("heroes", name, $"{name}.art.darkest")))
                     ));
 
                 Darkest highwaymanInfo = null!;
@@ -48,6 +48,8 @@ namespace DarkestDungeonRandomizer.Randomizers
 
                 XmlDocument heroStrings = new XmlDocument();
                 heroStrings.Load(model.GetGameDataPath(Path.Combine("localization", "heroes.string_table.xml")));
+
+                var heroSkillNames = heroFiles.ToDictionary(p => p.Key, p => GetSkillsInOrder(p.Value.art));
 
                 foreach (var hero in model.HeroNames)
                 {
@@ -58,28 +60,66 @@ namespace DarkestDungeonRandomizer.Randomizers
                     if (hero == "highwayman") highwaymanInfo = info;
                     else if (hero == "crusader") crusaderInfo = info;
 
-                    var skillNames = GetSkillsInOrder(art);
+                    var skillNames = heroSkillNames[hero];
 
                     // Localization
                     for (int i = 0; i < 7; i++)
                     {
-                        var combatNodes = heroStrings.SelectNodes($"//entry[@id='combat_skill_name_{heroSkillMappings[hero][i]}_{skillNames[i]}']");
-                        for (int nodeIndex = 0; nodeIndex < combatNodes.Count; nodeIndex++)
+                        if (heroSkillMappings[hero][i] == hero) continue;
+
+                        var combatNodes = heroStrings.SelectNodes($"//entry[@id='combat_skill_name_{heroSkillMappings[hero][i]}_{heroSkillNames[heroSkillMappings[hero][i]][i]}']")!
+                            .Cast<XmlNode>()
+                            .Zip(heroStrings.SelectNodes($"//entry[@id='combat_skill_name_{hero}_{skillNames[i]}']")!
+                                .Cast<XmlNode>(),
+                                (a, b) => (from: b, to: a));
+                        foreach (var (from, to) in combatNodes)
                         {
-                            combatNodes[nodeIndex].Attributes["id"].Value = $"combat_skill_name_{hero}_{skillNames[i]}";
+                            var originalAttr = heroStrings.CreateAttribute("original");
+                            originalAttr.Value = from!.InnerXml;
+                            from!.Attributes!.Append(originalAttr);
+
+                            if (to?.Attributes?.GetNamedItem("original") is XmlAttribute a)
+                            {
+                                from!.InnerXml = a.Value;
+                            }
+                            else
+                            {
+                                from!.InnerXml = to!.InnerXml;
+                            }
                         }
-                        var upgradeNodes = heroStrings.SelectNodes($"//entry[@id='upgrade_tree_name_{heroSkillMappings[hero][i]}.{skillNames[i]}']");
-                        for (int nodeIndex = 0; nodeIndex < upgradeNodes.Count; nodeIndex++)
+
+                        var upgradeNodes = heroStrings.SelectNodes($"//entry[@id='upgrade_tree_name_{heroSkillMappings[hero][i]}.{heroSkillNames[heroSkillMappings[hero][i]][i]}']")!
+                            .Cast<XmlNode>()
+                            .Zip(heroStrings.SelectNodes($"//entry[@id='upgrade_tree_name_{hero}.{skillNames[i]}']")!
+                                .Cast<XmlNode>(),
+                                (a, b) => (from: b, to: a));
+                        foreach (var (from, to) in upgradeNodes)
                         {
-                            upgradeNodes[nodeIndex].Attributes["id"].Value = $"upgrade_tree_name_{hero}.{skillNames[i]}";
+                            var originalAttr = heroStrings.CreateAttribute("original");
+                            originalAttr.Value = from!.InnerXml;
+                            from!.Attributes!.Append(originalAttr);
+
+                            if (to?.Attributes?.GetNamedItem("original") is XmlAttribute a)
+                            {
+                                from!.InnerXml = a.Value;
+                            }
+                            else
+                            {
+                                from!.InnerXml = to!.InnerXml;
+                            }
                         }
                     }
+                }
+
+                foreach (var node in heroStrings!.SelectNodes("//*[@original]")!.Cast<XmlNode>())
+                {
+                    node?.Attributes!.RemoveNamedItem("original");
                 }
 
                 heroStrings.Save(Path.Combine(model.ModDirectory.CreateSubdirectory("localization").FullName, "heroes.string_table.xml"));
 
                 SwapSkillIcons(heroSkillMappings);
-                UpdateStartingSave(highwaymanInfo, crusaderInfo);
+                //UpdateStartingSave(highwaymanInfo, crusaderInfo);
             }
         }
 
@@ -134,6 +174,9 @@ namespace DarkestDungeonRandomizer.Randomizers
 
                 newCombatEntries.AddRange(files[mappings[hero][i]].info.Entries["combat_skill"]
                     .Where(x => x.Properties["id"][0][1..^1] == newSkill)
+                    .Select(x => x with {
+                        Properties = x.Properties.ToDictionary(p => p.Key, p => p.Key == "id" ? new[] { $@"""{skills[i]}""" } : p.Value)
+                    })
                     .OrderBy(x => x.Properties["level"][0].TryParseInt()));
             }
 
@@ -161,40 +204,41 @@ namespace DarkestDungeonRandomizer.Randomizers
                 }).WithProperty("combat_skill", "generation_guaranteed", i => i == 0 ? new[] { "true" } : new[] { "false" });
             }
 
-            void SwapSkillUpgradesRefStrings(JToken obj, string prop)
-            {
-                if (obj.Type == JTokenType.Object && obj[prop] != null)
-                {
-                    if (skillMappings.ContainsKey(obj[prop]!.ToString()[(hero.Length + 1)..]))
-                    {
-                        obj[prop] = JToken.FromObject($"{hero}.{skillMappings[obj[prop]!.ToString()[(hero.Length + 1)..]]}");
-                    }
-                }
-            }
+            //void SwapSkillUpgradesRefStrings(JToken obj, string prop)
+            //{
+            //    if (obj.Type == JTokenType.Object && obj[prop] != null)
+            //    {
+            //        if (skillMappings.ContainsKey(obj[prop]!.ToString()[(hero.Length + 1)..]))
+            //        {
+            //            obj[prop] = JToken.FromObject($"{hero}.{skillMappings[obj[prop]!.ToString()[(hero.Length + 1)..]]}");
+            //        }
+            //    }
+            //}
 
-            var heroUpgradeFile = JObject.Parse(File.ReadAllText(
-                model.GetGameDataPath(Path.Combine("upgrades", "heroes", $"{hero}.upgrades.json"))));
-            foreach (var item in heroUpgradeFile["trees"]!)
-            {
-                SwapSkillUpgradesRefStrings(item, "id");
-                foreach (var req in item["requirements"]!)
-                {
-                    foreach (var treeReq in (req["prerequisite_requirements"] as JArray)!.Where(x => x["tree_id"] != null))
-                    {
-                        SwapSkillUpgradesRefStrings(treeReq, "tree_id");
-                    }
-                }
-            }
-            File.WriteAllText(
-                Path.Combine(
-                    model.ModDirectory
-                        .CreateSubdirectory("upgrades")
-                        .CreateSubdirectory("heroes")
-                        .FullName,
-                    $"{hero}.upgrades.json"),
-                heroUpgradeFile.ToString());
+            //var heroUpgradeFile = JObject.Parse(File.ReadAllText(
+            //    model.GetGameDataPath(Path.Combine("upgrades", "heroes", $"{hero}.upgrades.json"))));
+            //foreach (var item in heroUpgradeFile["trees"]!)
+            //{
+            //    SwapSkillUpgradesRefStrings(item, "id");
+            //    foreach (var req in item["requirements"]!)
+            //    {
+            //        foreach (var treeReq in (req["prerequisite_requirements"] as JArray)!.Where(x => x["tree_id"] != null))
+            //        {
+            //            SwapSkillUpgradesRefStrings(treeReq, "tree_id");
+            //        }
+            //    }
+            //}
+            //File.WriteAllText(
+            //    Path.Combine(
+            //        model.ModDirectory
+            //            .CreateSubdirectory("upgrades")
+            //            .CreateSubdirectory("heroes")
+            //            .FullName,
+            //        $"{hero}.upgrades.json"),
+            //    heroUpgradeFile.ToString());
 
-            var newArt = art.Replace("combat_skill", "id", (_, i, _) => files[mappings[hero][i]].art.Entries["combat_skill"][i].Properties["id"][0]);
+            //var newArt = art.Replace("combat_skill", "id", (_, i, _) => files[mappings[hero][i]].art.Entries["combat_skill"][i].Properties["id"][0]);
+            var newArt = art;
 
             if (riposte != null)
             {
@@ -243,43 +287,43 @@ namespace DarkestDungeonRandomizer.Randomizers
             }
         }
 
-        private void UpdateStartingSave(Darkest highwayman, Darkest crusader)
-        {
-            var startingRoster = JObject.Parse(File.ReadAllText(model.GetGameDataPath(Path.Combine("scripts", "starting_save", "persist.roster.json"))));
-            var heroes = startingRoster["data"]?["heroes"];
-            var reynauldSkills = heroes?["1"]?["skills"];
-            if (reynauldSkills != null)
-            {
-                reynauldSkills["selected_combat_skills"] =
-                    JObject.FromObject(crusader
-                        .Entries["combat_skill"]
-                        .Select(x => x.Properties["id"][0][1..^1])
-                        .Distinct()
-                        .Shuffle(random)
-                        .Take(4)
-                        .ToDictionary(x => x, _ => 0));
-            }
-            var dismasSkills = heroes?["2"]?["skills"];
-            if (dismasSkills != null)
-            {
-                dismasSkills["selected_combat_skills"] =
-                    JObject.FromObject(highwayman
-                        .Entries["combat_skill"]
-                        .Select(x => x.Properties["id"][0][1..^1])
-                        .Distinct()
-                        .Shuffle(random)
-                        .Take(4)
-                        .ToDictionary(x => x, _ => 0));
-            }
+        //private void UpdateStartingSave(Darkest highwayman, Darkest crusader)
+        //{
+        //    var startingRoster = JObject.Parse(File.ReadAllText(model.GetGameDataPath(Path.Combine("scripts", "starting_save", "persist.roster.json"))));
+        //    var heroes = startingRoster["data"]?["heroes"];
+        //    var reynauldSkills = heroes?["1"]?["skills"];
+        //    if (reynauldSkills != null)
+        //    {
+        //        reynauldSkills["selected_combat_skills"] =
+        //            JObject.FromObject(crusader
+        //                .Entries["combat_skill"]
+        //                .Select(x => x.Properties["id"][0][1..^1])
+        //                .Distinct()
+        //                .Shuffle(random)
+        //                .Take(4)
+        //                .ToDictionary(x => x, _ => 0));
+        //    }
+        //    var dismasSkills = heroes?["2"]?["skills"];
+        //    if (dismasSkills != null)
+        //    {
+        //        dismasSkills["selected_combat_skills"] =
+        //            JObject.FromObject(highwayman
+        //                .Entries["combat_skill"]
+        //                .Select(x => x.Properties["id"][0][1..^1])
+        //                .Distinct()
+        //                .Shuffle(random)
+        //                .Take(4)
+        //                .ToDictionary(x => x, _ => 0));
+        //    }
 
-            File.WriteAllText(
-                Path.Combine(
-                    model.ModDirectory
-                        .CreateSubdirectory("scripts")
-                        .CreateSubdirectory("starting_save")
-                        .FullName,
-                    "persist.roster.json"),
-                startingRoster.ToString());
-        }
+        //    File.WriteAllText(
+        //        Path.Combine(
+        //            model.ModDirectory
+        //                .CreateSubdirectory("scripts")
+        //                .CreateSubdirectory("starting_save")
+        //                .FullName,
+        //            "persist.roster.json"),
+        //        startingRoster.ToString());
+        //}
     }
 }
