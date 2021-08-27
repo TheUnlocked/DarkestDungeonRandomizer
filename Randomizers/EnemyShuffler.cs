@@ -40,7 +40,6 @@ namespace DarkestDungeonRandomizer.Randomizers
 
                 foreach (var level in levels)
                 {
-                    Darkest[] shuffledDungeonFiles = null!;
                     var dungeonFiles = dungeons.Select(dungeon => Darkest.LoadFromFile(model.GetGameDataPath(Path.Combine("dungeons", dungeon, $"{dungeon}.{level}.mash.darkest"))));
                     if (model.RandomizeMonsters)
                     {
@@ -48,14 +47,14 @@ namespace DarkestDungeonRandomizer.Randomizers
                         var hallEnemyReplacements = ShuffleMap(hallEnemies);
                         var roomEnemyReplacements = ShuffleMap(roomEnemies);
                         var stallEnemyReplacements = ShuffleMap(stallEnemies);
-                        shuffledDungeonFiles = ReplaceEnemies(dungeonFiles, hallEnemyReplacements, roomEnemyReplacements, stallEnemyReplacements).ToArray();
+                        dungeonFiles = ReplaceEnemies(dungeonFiles, hallEnemyReplacements, roomEnemyReplacements, stallEnemyReplacements);
                     }
                     if (model.RandomizeBosses)
                     {
                         // Exclude shrieker!
-                        var bossLayouts = GetAllBossLayouts(dungeonFiles).ToArray();
+                        var bossLayouts = GetAllBossLayouts(dungeonFiles);
                         var shuffledBossLayouts = bossLayouts.Shuffle(random);
-                        shuffledDungeonFiles = ReplaceBosses(dungeonFiles, shuffledBossLayouts).ToArray();
+                        dungeonFiles = ReplaceBosses(dungeonFiles, shuffledBossLayouts);
 
                         JObject questTypeFile = JObject.Parse(File.ReadAllText(model.GetGameDataPath(Path.Combine("campaign", "quest", "quest.types.json"))));
                         var bossLayoutConversion = bossLayouts.Zip(shuffledBossLayouts, (original, shuffled) => (original, shuffled));
@@ -77,7 +76,7 @@ namespace DarkestDungeonRandomizer.Randomizers
                         File.WriteAllText(Path.Combine(questDir.FullName, "quest.types.json"), questTypeFile.ToString());
                     }
 
-                    _ = dungeons.Zip(shuffledDungeonFiles, (dungeon, darkest) =>
+                    _ = dungeons.Zip(dungeonFiles, (dungeon, darkest) =>
                     {
                         darkest.WriteToFile(Path.Combine(model.ModDirectory.FullName, "dungeons", dungeon, $"{dungeon}.{level}.mash.darkest"));
                         return 0;
