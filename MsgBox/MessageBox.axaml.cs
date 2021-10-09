@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using Avalonia.Controls;
-using Avalonia.Interactivity;
+﻿using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using System.Threading.Tasks;
 
 // https://stackoverflow.com/a/55707749/4937286
 namespace DarkestDungeonRandomizer.MsgBox
@@ -43,7 +42,8 @@ namespace DarkestDungeonRandomizer.MsgBox
             void AddButton(string caption, MessageBoxResult r, bool def = false)
             {
                 var btn = new Button { Content = caption };
-                btn.Click += (_, __) => {
+                btn.Click += (_, __) =>
+                {
                     res = r;
                     msgbox.Close();
                 };

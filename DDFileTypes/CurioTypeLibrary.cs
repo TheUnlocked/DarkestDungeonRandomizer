@@ -11,7 +11,7 @@ namespace DarkestDungeonRandomizer.DDFileTypes;
 public class CurioTypeLibrary
 {
     public IReadOnlyList<Curio> Curios { get; set; }
-        
+
     public CurioTypeLibrary(IReadOnlyList<Curio> curios)
     {
         Curios = curios;
@@ -59,7 +59,7 @@ public class CurioTypeLibrary
         }
 
         var curios = new List<Curio>();
-        var lines = text.Split(new[] { "\n" , "\r\n" }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+        var lines = text.Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries).ToArray();
         for (int line = 0; line < lines.Length; line++)
         {
             if (lines[line].StartsWith(",,")) continue; // Not the start of a curio entry
@@ -84,7 +84,8 @@ public class CurioTypeLibrary
 
             line += 1;
             var row4 = splitAllowQuotes(lines[line])[2..];
-            Region region = row4[0] switch {
+            Region region = row4[0] switch
+            {
                 "Darkest Dungeon" => Region.DarkestDungeon,
                 string x => Enum.Parse<Region>(x, true)
             };
@@ -160,7 +161,8 @@ public class CurioTypeLibrary
             Result2Weight = cells[7].TryParseInt(),
             Result3 = cells[9],
             Result3Weight = cells[10].TryParseInt(),
-            CurioTrackerId = cells[12] switch {
+            CurioTrackerId = cells[12] switch
+            {
                 "nothing" => CurioTracker.Nothing,
                 "loot" => CurioTracker.Loot,
                 "heal_gen" => CurioTracker.HealGeneral,
@@ -229,7 +231,7 @@ public class CurioTypeLibrary
         string[] makeCurioEffectStrings(CurioEffect? effect)
         {
             float totalWeight = (effect?.Result1Weight ?? 0) + (effect?.Result2Weight ?? 0) + (effect?.Result3Weight ?? 0);
-                
+
             string getWeightText(int? weight)
             {
                 if (effect!.Type == CurioEffectType.Loot) return "<- # Draws";
@@ -246,7 +248,7 @@ public class CurioTypeLibrary
                         effect?.Notes ?? ""
                     }).ToArray();
             }
-                
+
             return new string[]
             {
                 effect?.Result1 ?? "",

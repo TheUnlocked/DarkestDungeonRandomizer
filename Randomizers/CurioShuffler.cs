@@ -43,7 +43,8 @@ public class CurioShuffler : IRandomizer
             shuffledCurios);
 
         var dungeonsFolder = model.ModDirectory.CreateSubdirectory("dungeons");
-        dungeonCurioPropsFiles.Zip(syncedDungeonCurioProps, (i, r) => {
+        dungeonCurioPropsFiles.Zip(syncedDungeonCurioProps, (i, r) =>
+        {
             var dungeonFolder = dungeonsFolder.CreateSubdirectory(i.Item2[1]);
             r.Item2.WriteToFile(Path.Combine(dungeonFolder.FullName, i.Item2[2]));
             return 0;
@@ -104,7 +105,7 @@ public class CurioShuffler : IRandomizer
             teleportEffects = teleportEffects.Shuffle(random);
             diseaseEffects = diseaseEffects.Shuffle(random);
         }
-            
+
         Dictionary<string, CurioEffect?[]> itemInteractionsByItem = new Dictionary<string, CurioEffect?[]>();
         for (int i = 0; i < curios.Count; i++)
         {

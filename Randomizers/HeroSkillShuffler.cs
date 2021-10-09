@@ -171,7 +171,8 @@ class HeroSkillShuffler : IRandomizer
 
             newCombatEntries.AddRange(files[mappings[hero][i]].info.Entries["combat_skill"]
                 .Where(x => x.Properties["id"][0][1..^1] == newSkill)
-                .Select(x => x with {
+                .Select(x => x with
+                {
                     Properties = x.Properties.ToDictionary(p => p.Key, p => p.Key == "id" ? new[] { $@"""{skills[i]}""" } : p.Value)
                 })
                 .OrderBy(x => x.Properties["level"][0].TryParseInt()));
@@ -240,7 +241,8 @@ class HeroSkillShuffler : IRandomizer
         if (riposte != null)
         {
             newInfo = newInfo.AddEntries(files[riposte].info.Entries["riposte_skill"][0])
-                with { EntryTypeOrder = files[riposte].info.EntryTypeOrder };
+                with
+            { EntryTypeOrder = files[riposte].info.EntryTypeOrder };
 
             var replacementGraphics = newArt.Entries["combat_skill"]
                 .Where(x => x.Properties.ContainsKey("anim") && x.Properties.ContainsKey("fx") && x.Properties.ContainsKey("targchestfx"))
@@ -251,7 +253,8 @@ class HeroSkillShuffler : IRandomizer
                     ("fx", (Darkest.DarkestPropertyConversionFunction)((_, _, _) => replacementGraphics.Properties["fx"][0])),
                     ("targchestfx", (Darkest.DarkestPropertyConversionFunction)((_, _, _) => replacementGraphics.Properties["targchestfx"][0]))
                 })
-                with { EntryTypeOrder = files[riposte].art.EntryTypeOrder };
+                with
+            { EntryTypeOrder = files[riposte].art.EntryTypeOrder };
         }
 
         return (newInfo, newArt);

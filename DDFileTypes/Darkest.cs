@@ -89,7 +89,7 @@ public record Darkest(IReadOnlyDictionary<string, IReadOnlyList<Darkest.DarkestE
                 if (str.StartsWith('.'))
                 {
                     ClearPropBuffer(str[1..]);
-                        
+
                 }
                 else if (currentPropName != null)
                 {

@@ -23,7 +23,7 @@ public class HeroStatRandomizer : IRandomizer
         if (model.RandomizeHeroStats > 0)
         {
             var heroesDir = model.ModDirectory.CreateSubdirectory("heroes");
-            
+
             foreach (var heroName in model.HeroNames)
             {
                 var res = GenerateBalancedModifiers(7).Select(x => Math.Round(x * baseResistance).ToString()).ToArray();

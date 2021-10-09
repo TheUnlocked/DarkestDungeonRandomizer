@@ -57,7 +57,8 @@ public class EnemyShuffler : IRandomizer
                         throw new Exception("quest.types.json could not be parsed.");
                     }
                     var bossLayoutConversion = bossLayouts.Zip(shuffledBossLayouts, (original, shuffled) => (original, shuffled));
-                    foreach (var goal in questTypeFile["goals"]!.AsArray()) {
+                    foreach (var goal in questTypeFile["goals"]!.AsArray())
+                    {
                         if (goal == null) continue;
 
                         var data = goal["data"]?.AsObject();
@@ -70,10 +71,10 @@ public class EnemyShuffler : IRandomizer
                                 .FirstOrDefault(bossLayout => monsterClassIds
                                     .Any(questMonster => bossLayout.original.Contains((string)questMonster!)))
                                 switch
-                                {
-                                    (_, null) => goal["data"]!["monster_class_ids"],
-                                    (_, var shuffled) => new JsonArray(shuffled.Select(s => JsonValue.Create(s)).ToArray())
-                                };
+                            {
+                                (_, null) => goal["data"]!["monster_class_ids"],
+                                (_, var shuffled) => new JsonArray(shuffled.Select(s => JsonValue.Create(s)).ToArray())
+                            };
                         }
                     }
                     var campaignDir = model.ModDirectory.CreateSubdirectory("campaign");

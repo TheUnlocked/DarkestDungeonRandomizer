@@ -1,5 +1,5 @@
-﻿using System.Globalization;
-using Avalonia;
+﻿using Avalonia;
+using System.Globalization;
 
 namespace DarkestDungeonRandomizer;
 

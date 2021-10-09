@@ -1,16 +1,16 @@
 ﻿using Avalonia.Controls;
 using DarkestDungeonRandomizer.DDFileTypes;
 using DarkestDungeonRandomizer.DDTypes;
-using DarkestDungeonRandomizer.Randomizers;
 using DarkestDungeonRandomizer.MsgBox;
+using DarkestDungeonRandomizer.Randomizers;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace DarkestDungeonRandomizer;
 

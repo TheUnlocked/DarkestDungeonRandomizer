@@ -65,7 +65,7 @@ public class CampingSkillRandomizer : IRandomizer
                     .CreateSubdirectory("raid")
                     .CreateSubdirectory("camping")
                     .FullName,
-                "default.camping_skills.json"), file.ToJsonString(new () { WriteIndented = true }));
+                "default.camping_skills.json"), file.ToJsonString(new() { WriteIndented = true }));
         }
     }
 }

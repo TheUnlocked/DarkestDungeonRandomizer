@@ -92,11 +92,14 @@ public record CurioEffectList
     public WeightedCurioEffect Teleport { get; init; } = new WeightedCurioEffect(CurioEffectType.Teleport);
     public WeightedCurioEffect Disease { get; init; } = new WeightedCurioEffect(CurioEffectType.Disease);
 
-    public float TotalWeight { get
+    public float TotalWeight
+    {
+        get
         {
             return Nothing.Weight + Loot.Weight + Quirk.Weight + Effect.Weight +
                 Purge.Weight + Scouting.Weight + Teleport.Weight + Disease.Weight;
-        } }
+        }
+    }
 }
 
 public record CurioEffect(CurioEffectType Type)
